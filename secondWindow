@@ -1,0 +1,1381 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+
+namespace schedular2
+{
+    public partial class Form2 : Form
+    {
+        static List<int> arrival = new List<int>();
+        static List<int> burst = new List<int>();
+        static List<int> priority = new List<int>();
+
+        //test
+        static List<int> g_result = new List<int>();
+        static List<string> g_process = new List<string>();
+        int time;
+
+
+
+
+
+
+
+
+        public Form2()
+        {
+            InitializeComponent();
+
+        }
+
+        private void Form2_Load(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void noLabel_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+        public string LabelText
+        {
+            get
+            {
+                return this.noLabel.Text;
+            }
+            set
+            {
+                this.noLabel.Text = value;
+            }
+        }
+        public string type
+        {
+            get
+            {
+                return this.typeLabel.Text;
+            }
+            set
+            {
+                this.typeLabel.Text = value;
+            }
+        }
+
+
+
+        // target Function 
+        int number = 0;
+        int number2 = 0;
+        private void addButton_Click(object sender, EventArgs e)
+        {
+            //check number of process to enter Arrival and burst dosent't depend on Type
+           
+            if( Convert.ToInt32(noLabel.Text) > number)
+            {
+                arrivalList.Items.Add(arrivalBox.Text);
+                /// ADD arrival time to list 
+                arrival.Add(Convert.ToInt32(arrivalBox.Text));
+                burstList.Items.Add(burstBox.Text);
+                burst.Add(Convert.ToInt32(burstBox.Text));
+                number++;
+            }
+            else //cehck type
+            {
+               
+                //Priority
+                if(typeLabel.Text == "P")
+                {
+                    burstBox.Enabled = false;
+                    priorityBox.Visible = true;
+                    checkBox.Visible = true;
+                    Boolean check;
+                    if (checkBox.Checked)
+                    {
+                        check = true;
+
+                    }
+                    else
+                    {
+                        check = false;
+
+                    }
+
+
+                    //change text
+                    label2.Text = "priority";
+                    label4.Text = "priority";
+
+                    if (Convert.ToInt32(noLabel.Text) > number2)
+                    {
+                        //Array of Priority
+                        priorityBox.Items.Add(arrivalBox.Text);
+                        priority.Add(Convert.ToInt32(arrivalBox.Text));
+                        number2++;
+                    }
+                    else // all parm are entered
+                    {
+                        List<schedular.process> parmtrs = new List<schedular.process>();
+
+                        for (int i=0; i< Convert.ToInt32(noLabel.Text); i++)
+                        {
+                            parmtrs.Add(new schedular.process(i+1,arrival[i], burst[i], priority[i]));
+                        }
+
+                        //Excute function 
+                        Program_ Process = new Program_();
+                        //  Process.getpriority(parmtrs, parmtrs.Count);
+                        time = getpriority(parmtrs, parmtrs.Count,check); //if not Void
+                        addButton.Enabled = false;
+                        showButton.Visible = true;
+                    }
+                }
+                //Round Robin
+                else if (typeLabel.Text == "RR")
+                {
+                    burstBox.Enabled = false;
+                    pOrR.Text = "Round Robin";
+
+                    //change text
+                    label2.Text = "Round Robin";
+                    qLabel.Visible = true;
+                    qBox.Visible = true;
+
+
+
+                    List<schedular.process> parmtrs = new List<schedular.process>();
+
+                        // function of priority
+                        for (int i = 0; i < Convert.ToInt32(noLabel.Text); i++)
+                        {
+                            parmtrs.Add(new schedular.process(i+1, arrival[i], burst[i], 1));
+                        }
+
+                        //Excute function 
+                        Program_ Process = new Program_();
+                    //  Process.RR(parmtrs, parmtrs.Count);
+                        int Quntum = Convert.ToInt32(qBox.Text);
+                        time=RR(Quntum, parmtrs, parmtrs.Count); //if not Void
+                        addButton.Enabled = false;
+                        showButton.Visible  = true;
+                    
+                }
+
+                //FCFS or SJF
+                else 
+                {
+                    if(typeLabel.Text =="SJF")
+                    {
+                        checkBox.Visible = true;
+                        Boolean check;
+                        if (checkBox.Checked)
+                        {
+                            check = true;
+                          
+                        }
+                        else { check = false;
+                           
+                        }
+                        List<schedular.process> parmtrs = new List<schedular.process>();
+
+                       for (int i = 0; i < Convert.ToInt32(noLabel.Text); i++)
+                       {
+                            parmtrs.Add(new schedular.process(i+1, arrival[i], burst[i],1));
+                      
+
+
+                          }
+
+                        //Excute function 
+                        Program_ Process = new Program_();
+                        time = sjf(parmtrs, parmtrs.Count, check);
+                    }
+                    else if(typeLabel.Text == "FCFS") //FCFS
+                    {
+                        List<schedular.process> parmtrs = new List<schedular.process>();
+                        
+                       
+                        for (int i = 0; i < Convert.ToInt32(noLabel.Text); i++)
+                        {
+                            parmtrs.Add(new schedular.process(i+1, arrival[i], burst[i], 0));
+                        }
+
+                        //Excute function 
+                        Program_ Process = new Program_();
+                        time = fcfs(parmtrs, parmtrs.Count);
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("you entered unkown type");
+                    }
+                    addButton.Enabled = false;
+                    showButton.Visible = true;
+                }
+
+            }
+           
+        }
+
+        private void arrivalList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+       
+
+        private void showButton_Click(object sender, EventArgs e)
+        {
+            /* this.Hide();
+             Form3 form2 = new Form3();
+             form2.Show();*/
+            label3.Visible = true;
+            timeLabel.Visible = true;
+            timeLabel.Text = time.ToString();
+            showButton.Visible = false;
+            priorityBox.Visible = false;
+            burstList.Visible = false;
+            arrivalList.Visible = false;
+            groupBox1.Visible = false;
+
+            List<TextBox> TextBox = new List<TextBox>();
+            List<Label> Label = new List<Label>();
+           
+
+            for (int i = 0; i < g_result.Count()-1; i++)
+            {
+                //create gantt chart by textBox4
+                   if(i == g_result.Count() - 2)
+                {
+                    Label namelabel2 = new Label();
+                    namelabel2.Location = new Point((g_result[i+1] ) * 20, 170);
+                    namelabel2.Text = g_result[i+1].ToString();
+                    namelabel2.AutoSize = true;
+                    this.Controls.Add(namelabel2);
+                }
+                   Label namelabel = new Label();
+                   namelabel.Location = new Point(g_result[i] * 20,170);
+                   namelabel.Text = g_result[i].ToString();
+                   namelabel.AutoSize = true;
+                   this.Controls.Add(namelabel);
+
+                   TextBox rectangle = new TextBox();
+                   TextBox.Add(rectangle);
+
+
+                   rectangle.Location = new Point(g_result[i]*20, 150);
+                   rectangle.Width =  (g_result[i + 1] - g_result[i])*20;
+                   rectangle.Enabled = false;
+                if (g_process[i] == "p0")
+                {
+                    rectangle.Text = "idle";
+                }
+                else
+                {
+                    rectangle.Text = g_process[i];
+                }
+                 
+                   rectangle.Margin = new Padding(0);
+                   rectangle.Height = 70;
+                   this.Controls.Add(rectangle);
+                //  MessageBox.Show(g_process[i]);
+            }
+
+
+
+
+
+        }
+
+        private string ToString(int v)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void typeLabel_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+        /////////////////////
+        ///
+        /* static void sjf(List<schedular.process> plist, int n, bool preemp)
+         {
+             List<double> chart = new List<double>();
+             List<char> fin = new List<char>();
+             List<schedular.process> queue = new List<schedular.process>();
+             g_process.Clear();
+             g_result.Clear();
+             double time = 0;
+             int ap = 0;
+             int rp = 0;
+             int done = 0;
+             if (!preemp)
+             {
+                 while (done < n)
+                 {
+                     for (int i = ap; i < n; i++)
+                     {
+                         if (time >= plist[i].arrival)
+                         {
+                             queue.Add(plist[i]);
+                             ap += 1;
+                             rp += 1;
+                         }
+                     }
+                     if (rp < 1)
+                     {
+                         time += 1;
+                         chart.Add(0);
+                         continue;
+                     }
+                     queue = queue.OrderBy(process => process.burst).ThenBy(process => process.arrival).ToList();
+                     if (queue[0].burst > 0)
+                     {
+                         for (int i = 0; i < queue[0].burst; i++)
+                         {
+                             chart.Add(queue[0].Pid);
+
+                         }
+                         time += queue[0].burst;
+                         queue[0].burst = 99999999;
+                         done += 1;
+                         rp -= 1;
+
+                     }
+                 }
+             }
+             else
+             {
+                 while (done < n)
+                 {
+                     for (int i = ap; i < n; i++)
+                     {
+                         if (time >= plist[i].arrival)
+                         {
+                             queue.Add(plist[i]);
+                             ap += 1;
+                             rp += 1;
+                         }
+                     }
+                     if (rp < 1)
+                     {
+                         time += 1;
+                         chart.Add(0);
+                         continue;
+                     }
+                     queue = queue.OrderBy(process => process.burst).ThenBy(process => process.arrival).ToList();
+                     if (queue[0].burst > 0)
+                     {
+                         chart.Add(queue[0].Pid);
+                         time += 1;
+                         queue[0].burst -= 1;
+                         if (queue[0].burst < 1)
+                         {
+                             queue[0].burst = 9999999;
+                             done += 1;
+                             rp -= 1;
+
+                         }
+
+
+                     }
+                 }
+             }
+             for (int i = 0; i < chart.Count; i++)
+             {
+                 chart[i].ToString();
+             }
+             string s = "0";
+             for (int j = 0; j < chart.Count; j++)
+             {
+
+                 s = s + chart[j];
+
+             }
+             s = s.Substring(1);
+             int k;
+             for (k = 0; k < s.Length - 1; k++)
+             {
+                 if (s[k] != s[k + 1])
+                 {
+                     fin.Add(s[k]);
+
+                 }
+             }
+             fin.Add(s[k]);
+
+             for (int j = 0; j < fin.Count; j++)
+             {
+                 Console.Write("p" + fin[j] + " ");
+                 g_process.Add("p" + fin[j]);
+
+             }
+             Console.WriteLine();
+
+             //if (s[0] != '0')
+
+             Console.Write("0" + " ");
+             g_result.Add(0);
+
+
+             int count = 1;
+             int result = 0;
+             for (int i = 0; i < s.Length; i++)
+             {
+                 if (i != s.Length - 1)
+                 {
+                     if (s[i] == s[i + 1])
+                     {
+                         count++;
+                     }
+                     else
+                     {
+                         result = result + count;
+                         g_result.Add(result);
+                         Console.Write(result + " ");
+                         count = 1;
+                     }
+                 }
+                 else
+                 {
+                     result = result + count;
+                     g_result.Add(result);
+                     Console.Write(result + " ");
+                 }
+             }
+
+             Console.WriteLine();
+             for (int m = 0; m < g_process.Count; m++) Console.Write(g_process[m] + " ");
+             Console.WriteLine();
+             for (int m = 0; m < g_result.Count; m++) Console.Write(g_result[m] + " ");
+         }*/
+        static List<schedular.process> cshiftlift(List<schedular.process> alist)
+        {
+            schedular.process temp = alist[0];
+            for (int i = 0; i < alist.Count - 1; i++)
+            {
+                alist[i] = alist[i + 1];
+            }
+            alist[alist.Count - 1] = temp;
+            return alist;
+        }
+        //_____________________________________________________________________________________________________________________
+        static void sorting(List<schedular.process> l)
+        {
+            int temp;
+            int temp1;
+            int temp2;
+            int temp3;
+            for (int i = 0; i < l.Count; i++)
+            {
+                for (int j = 0; j < l.Count; j++)
+                {
+                    if (l[i].arrival < l[j].arrival)
+                    {
+                        temp = l[i].arrival;
+                        temp2 = l[i].Pid;
+                        temp1 = l[i].burst;
+                        temp3 = l[i].priority;
+                        l[i].arrival = l[j].arrival;
+                        l[i].Pid = l[j].Pid;
+                        l[i].burst = l[j].burst;
+                        l[i].priority = l[j].priority;
+
+                        l[j].arrival = temp;
+                        l[j].Pid = temp2;
+                        l[j].burst = temp1;
+                        l[j].priority = temp3;
+
+                    }
+
+                }
+
+            }
+        }
+        //_____________________________________________________________________________________________________________________
+        static int RR(int tq, List<schedular.process> plist, int n)
+        {
+            sorting(plist);
+            List<int> chart = new List<int>();
+            List<char> fin = new List<char>();
+            List< schedular.process > queue = new List<schedular.process >();
+            //here
+            List<int> nburst = new List<int>();
+            for (int i = 0; i < plist.Count; i++)
+            {
+                nburst.Add(plist[i].burst);
+                g_process.Clear();
+                g_result.Clear();
+            }
+            //to here
+            int time = 0;
+            int ap = 0;
+            int rp = 0;
+            int done = 0;
+            int q = tq;
+            bool start = false;
+            while (done < n)
+            {
+                for (int i = ap; i < n; i++)
+                {
+                    if (time >= plist[i].arrival)
+                    {
+                        queue.Add(plist[i]);
+                        ap += 1;
+                        rp += 1;
+                    }
+                }
+                if (rp < 1)
+                {
+                    chart.Add(0);
+                    time += 1;
+                    continue;
+                }
+                if (start)
+                {
+                    queue = cshiftlift(queue);
+                }
+                if (queue[0].burst > 0)
+                {
+                    if (queue[0].burst > q)
+                    {
+                        for (int g = time; g < time + q; g++)
+                        {
+                            chart.Add(queue[0].Pid);
+                        }
+
+
+                        time += q;
+                        queue[0].burst -= q;
+                    }
+                    else
+                    {
+                        for (int i = time; i < time + queue[0].burst; i++)
+                        {
+                            chart.Add(queue[0].Pid);
+                        }
+
+                        time += queue[0].burst;
+                        queue[0].burst = 0;
+                        done += 1;
+                        rp -= 1;
+                    }
+                    start = true;
+
+                }
+            }
+            for (int l = 0; l < chart.Count; l++)
+            {
+                chart[l].ToString();
+            }
+            string s2 = "0";
+            for (int j = 0; j < chart.Count; j++)
+            {
+
+                s2 = s2 + chart[j];
+
+            }
+            s2 = s2.Substring(1);
+
+
+            string s = s2 + " ";
+
+
+            int k;
+            for (k = 0; k < s.Length - 1; k++)
+            {
+                fin.Add(s[k]);
+                for (int j = 1; (s[k] == s[k + 1]); j++, k++)
+                {
+                    if (j % q == 0)
+                    {
+                        fin.Add(s[k]);
+                    }
+                }
+            }
+
+            for (int j = 0; j < fin.Count; j++)
+            {
+                Console.Write("p" + fin[j] + " ");
+                g_process.Add("p" + fin[j]);
+            }
+            //marina hna
+            Console.WriteLine();
+            for (int j = 0; j <= fin.Count; j++)
+            {
+                Console.Write(j * tq + " ");
+                g_result.Add(j * tq);
+            }
+
+            Console.WriteLine();
+            for (int m = 0; m < g_process.Count; m++) Console.Write(g_process[m] + " ");
+            Console.WriteLine();
+            for (int m = 0; m < g_result.Count; m++) Console.Write(g_result[m] + " ");
+
+            //TO GET AVERAGE WAITING TIME
+            List<string> gp = new List<string>();
+            List<int> gr = new List<int>();
+            Console.WriteLine();
+            for (int m = g_process.Count - 1; m >= 0; m--)
+            {
+                gp.Add(g_process[m]);
+            }
+
+            Console.WriteLine();
+            for (int m = g_result.Count - 1; m >= 0; m--)
+            {
+                gr.Add(g_result[m]);
+            }
+            /*
+            Console.WriteLine();
+            for (int m = 0; m < gp.Count; m++) Console.Write(gp[m] + " ");
+            Console.WriteLine();
+            for (int m = 0; m < gr.Count; m++) Console.Write(gr[m] + " ");
+            */
+            List<string> nos = new List<string>();
+            List<string> pe = new List<string>(); // list of processes arranged for the exit time
+            List<int> exits = new List<int>(); // list of exit time
+
+            for (int i = 1; i <= n; i++)
+            {
+                nos.Add("p" + i);
+            }
+
+            nos.Add("ss");
+            gp.Add("pp");
+            for (int m = 0; m < gp.Count - 1; m++)
+            {
+                if (gp[m] != "p0")
+                {
+                    for (int i = 0; i <= nos.Count - 1; i++)
+                    {
+                        if (gp[m] == nos[i])
+                        {
+                            pe.Add(gp[m]);
+                            exits.Add(gr[m]);
+                            nos.Remove(nos[i]);
+                        }
+                    }
+                }
+                if (nos.Count == 1) { break; }
+            }
+            int idd;
+            List<int> iD = new List<int>();
+            List<int> wt = new List<int>();
+            for (int i = 0; i < exits.Count; i++)
+            {
+                Console.Write(pe[i] + "--");///////////////////////////////
+                Console.WriteLine(exits[i]);/////////////////////////////
+
+                pe[i] = pe[i].Substring(1, 1);
+                idd = Convert.ToInt32(pe[i]);
+                iD.Add(idd);
+            }
+
+            Console.WriteLine(plist.Count + " = " + n + " = " + iD.Count);
+            Console.WriteLine("Tamam kda ?");
+
+            for (int i = 0; i < plist.Count; i++)
+            {
+                for (int j = 0; j < iD.Count; j++)
+                {
+                    if (plist[i].Pid == iD[j])
+                    {
+                        Console.WriteLine(plist[i].arrival);
+                        Console.WriteLine(nburst[i]);
+                        wt.Add(exits[j] - plist[i].arrival - nburst[i]);
+                        break;
+                    }
+                }
+            }
+            int wtime = 0;
+            int av_wt;
+            for (int i = 0; i < wt.Count; i++)
+            {
+                wtime += wt[i];
+            }
+            av_wt = (wtime) / n;
+            Console.WriteLine(av_wt);
+            return av_wt;
+        }
+        //______________________________________________________________________________________________________________
+        static int sjf(List<schedular.process> plist, int n, bool preemp)
+        {
+            sorting(plist);
+            List<int> chart = new List<int>();
+            List<char> fin = new List<char>();
+            List< schedular.process > queue = new List<schedular.process >();
+            //here
+            List<int> nburst = new List<int>();
+            for (int i = 0; i < plist.Count; i++)
+            {
+                nburst.Add(plist[i].burst);
+            }
+            g_process.Clear();
+            g_result.Clear();
+            //to here
+            int time = 0;
+            int ap = 0;
+            int rp = 0;
+            int done = 0;
+            if (!preemp)
+            {
+                while (done < n)
+                {
+                    for (int i = ap; i < n; i++)
+                    {
+                        if (time >= plist[i].arrival)
+                        {
+                            queue.Add(plist[i]);
+                            ap += 1;
+                            rp += 1;
+                        }
+                    }
+                    if (rp < 1)
+                    {
+                        time += 1;
+                        chart.Add(0);
+                        continue;
+                    }
+                    queue = queue.OrderBy(process => process.burst).ThenBy(process => process.arrival).ToList();
+                    if (queue[0].burst > 0)
+                    {
+                        for (int i = 0; i < queue[0].burst; i++)
+                        {
+                            chart.Add(queue[0].Pid);
+
+                        }
+                        time += queue[0].burst;
+                        queue[0].burst = 99999999;
+                        done += 1;
+                        rp -= 1;
+
+                    }
+                }
+            }
+            else
+            {
+                while (done < n)
+                {
+                    for (int i = ap; i < n; i++)
+                    {
+                        if (time >= plist[i].arrival)
+                        {
+                            queue.Add(plist[i]);
+                            ap += 1;
+                            rp += 1;
+                        }
+                    }
+                    if (rp < 1)
+                    {
+                        time += 1;
+                        chart.Add(0);
+                        continue;
+                    }
+                    queue = queue.OrderBy(process => process.burst).ThenBy(process => process.arrival).ToList();
+                    if (queue[0].burst > 0)
+                    {
+                        chart.Add(queue[0].Pid);
+                        time += 1;
+                        queue[0].burst -= 1;
+                        if (queue[0].burst < 1)
+                        {
+                            queue[0].burst = 9999999;
+                            done += 1;
+                            rp -= 1;
+
+                        }
+
+
+                    }
+                }
+            }
+            for (int i = 0; i < chart.Count; i++)
+            {
+                chart[i].ToString();
+            }
+            string s = "0";
+            for (int j = 0; j < chart.Count; j++)
+            {
+
+                s = s + chart[j];
+
+            }
+            s = s.Substring(1);
+            int k;
+            for (k = 0; k < s.Length - 1; k++)
+            {
+                if (s[k] != s[k + 1])
+                {
+                    fin.Add(s[k]);
+
+                }
+            }
+            fin.Add(s[k]);
+
+            for (int j = 0; j < fin.Count; j++)
+            {
+                Console.Write("p" + fin[j] + " ");
+                g_process.Add("p" + fin[j]);
+
+            }
+            //hala mn hna
+            Console.WriteLine();
+
+            //if (s[0] != '0')
+
+            Console.Write("0" + " ");
+            g_result.Add(0);
+
+
+            int count = 1;
+            int result = 0;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (i != s.Length - 1)
+                {
+                    if (s[i] == s[i + 1])
+                    {
+                        count++;
+                    }
+                    else
+                    {
+                        result = result + count;
+                        g_result.Add(result);
+                        Console.Write(result + " ");
+                        count = 1;
+                    }
+                }
+                else
+                {
+                    result = result + count;
+                    g_result.Add(result);
+                    Console.Write(result + " ");
+                }
+            }
+
+            Console.WriteLine();
+            for (int m = 0; m < g_process.Count; m++) Console.Write(g_process[m] + " ");
+            Console.WriteLine();
+            for (int m = 0; m < g_result.Count; m++) Console.Write(g_result[m] + " ");
+
+            //TO GET AVERAGE WAITING TIME
+            List<string> gp = new List<string>();
+            List<int> gr = new List<int>();
+            Console.WriteLine();
+            for (int m = g_process.Count - 1; m >= 0; m--)
+            {
+                gp.Add(g_process[m]);
+            }
+
+            Console.WriteLine();
+            for (int m = g_result.Count - 1; m >= 0; m--)
+            {
+                gr.Add(g_result[m]);
+            }
+            /*
+            Console.WriteLine();
+            for (int m = 0; m < gp.Count; m++) Console.Write(gp[m] + " ");
+            Console.WriteLine();
+            for (int m = 0; m < gr.Count; m++) Console.Write(gr[m] + " ");
+            */
+            List<string> nos = new List<string>();
+            List<string> pe = new List<string>(); // list of processes arranged for the exit time
+            List<int> exits = new List<int>(); // list of exit time
+
+            for (int i = 1; i <= n; i++)
+            {
+                nos.Add("p" + i);
+            }
+
+            nos.Add("ss");
+            gp.Add("pp");
+            for (int m = 0; m < gp.Count - 1; m++)
+            {
+                if (gp[m] != "p0")
+                {
+                    for (int i = 0; i <= nos.Count - 1; i++)
+                    {
+                        if (gp[m] == nos[i])
+                        {
+                            pe.Add(gp[m]);
+                            exits.Add(gr[m]);
+                            nos.Remove(nos[i]);
+                        }
+                    }
+                }
+                if (nos.Count == 1) { break; }
+            }
+            int idd;
+            List<int> iD = new List<int>();
+            List<int> wt = new List<int>();
+            for (int i = 0; i < exits.Count; i++)
+            {
+                Console.Write(pe[i] + "--");///////////////////////////////
+                Console.WriteLine(exits[i]);/////////////////////////////
+
+                pe[i] = pe[i].Substring(1, 1);
+                idd = Convert.ToInt32(pe[i]);
+                iD.Add(idd);
+            }
+
+            Console.WriteLine(plist.Count + " = " + n + " = " + iD.Count);
+            Console.WriteLine("Tamam kda ?");
+
+            for (int i = 0; i < plist.Count; i++)
+            {
+                for (int j = 0; j < iD.Count; j++)
+                {
+                    if (plist[i].Pid == iD[j])
+                    {
+                        Console.WriteLine(plist[i].arrival);
+                        Console.WriteLine(nburst[i]);
+                        wt.Add(exits[j] - plist[i].arrival - nburst[i]);
+                        break;
+                    }
+                }
+            }
+            int wtime = 0;
+            int av_wt;
+            for (int i = 0; i < wt.Count; i++)
+            {
+                wtime += wt[i];
+            }
+            av_wt = (wtime) / n;
+            Console.WriteLine(av_wt);
+            return av_wt;
+        }
+        //_____________________________________________________________________________________________________________
+        static int getpriority(List<schedular.process> plist, int n, bool preemp)
+        {
+            sorting(plist);
+            List<int> chart = new List<int>();
+            List<char> fin = new List<char>();
+            List<schedular.process> queue = new List<schedular.process>();
+            //here
+            List<int> nburst = new List<int>();
+            for (int i = 0; i < plist.Count; i++)
+            {
+                nburst.Add(plist[i].burst);
+            }
+            g_process.Clear();
+            g_result.Clear();
+            //to here
+            int time = 0;
+            int ap = 0;
+            int rp = 0;
+            int done = 0;
+            if (!preemp)
+            {
+                while (done < n)
+                {
+                    for (int i = ap; i < n; i++)
+                    {
+                        if (time >= plist[i].arrival)
+                        {
+                            queue.Add(plist[i]);
+                            ap += 1;
+                            rp += 1;
+                        }
+                    }
+                    if (rp < 1)
+                    {
+                        time += 1;
+                        chart.Add(0);
+                        continue;
+                    }
+                    queue = queue.OrderBy(process => process.priority).ThenBy(process => process.arrival).ToList();
+
+                    if (queue[0].burst > 0)
+                    {
+                        for (int i = 0; i < queue[0].burst; i++)
+                        {
+                            chart.Add(queue[0].Pid);
+
+                        }
+                        time += queue[0].burst;
+                        queue[0].priority = 9999999;
+                        done += 1;
+                        rp -= 1;
+
+                    }
+                }
+            }
+
+
+            else
+            {
+                while (done < n)
+                {
+                    for (int i = ap; i < n; i++)
+                    {
+                        if (time >= plist[i].arrival)
+                        {
+                            queue.Add(plist[i]);
+                            ap += 1;
+                            rp += 1;
+                        }
+                    }
+                    if (rp < 1)
+                    {
+                        time += 1;
+                        chart.Add(0);
+                        continue;
+                    }
+                    queue = queue.OrderBy(process => process.priority).ThenBy(process => process.arrival).ToList();
+                    if (queue[0].burst > 0)
+                    {
+                        chart.Add(queue[0].Pid);
+                        time += 1;
+                        queue[0].burst -= 1;
+                        if (queue[0].burst < 1)
+                        {
+                            queue[0].priority = 9999999;
+                            done += 1;
+                            rp -= 1;
+
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < chart.Count; i++)
+            {
+                chart[i].ToString();
+            }
+            string s = "0";
+            for (int j = 0; j < chart.Count; j++)
+            {
+
+                s = s + chart[j];
+
+            }
+            s = s.Substring(1);
+            int k;
+            for (k = 0; k < s.Length - 1; k++)
+            {
+                if (s[k] != s[k + 1])
+                {
+                    fin.Add(s[k]);
+                }
+            }
+            fin.Add(s[k]);
+            for (int j = 0; j < fin.Count; j++)
+            {
+                Console.Write("p" + fin[j] + " ");
+                g_process.Add("p" + fin[j]);
+            }
+            //hala mn hna
+            Console.WriteLine();
+
+            //if (s[0] != '0')
+
+            Console.Write("0" + " ");
+            g_result.Add(0);
+
+
+            int count = 1;
+            int result = 0;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (i != s.Length - 1)
+                {
+                    if (s[i] == s[i + 1])
+                    {
+                        count++;
+                    }
+                    else
+                    {
+                        result = result + count;
+                        g_result.Add(result);
+                        Console.Write(result + " ");
+                        count = 1;
+                    }
+                }
+                else
+                {
+                    result = result + count;
+                    g_result.Add(result);
+                    Console.Write(result + " ");
+                }
+            }
+
+            Console.WriteLine();
+            for (int m = 0; m < g_process.Count; m++) Console.Write(g_process[m] + " ");
+            Console.WriteLine();
+            for (int m = 0; m < g_result.Count; m++) Console.Write(g_result[m] + " ");
+
+            //TO GET AVERAGE WAITING TIME
+            List<string> gp = new List<string>();
+            List<int> gr = new List<int>();
+            Console.WriteLine();
+            for (int m = g_process.Count - 1; m >= 0; m--)
+            {
+                gp.Add(g_process[m]);
+            }
+
+            Console.WriteLine();
+            for (int m = g_result.Count - 1; m >= 0; m--)
+            {
+                gr.Add(g_result[m]);
+            }
+            /*
+            Console.WriteLine();
+            for (int m = 0; m < gp.Count; m++) Console.Write(gp[m] + " ");
+            Console.WriteLine();
+            for (int m = 0; m < gr.Count; m++) Console.Write(gr[m] + " ");
+            */
+            List<string> nos = new List<string>();
+            List<string> pe = new List<string>(); // list of processes arranged for the exit time
+            List<int> exits = new List<int>(); // list of exit time
+
+            for (int i = 1; i <= n; i++)
+            {
+                nos.Add("p" + i);
+            }
+
+            nos.Add("ss");
+            gp.Add("pp");
+            for (int m = 0; m < gp.Count - 1; m++)
+            {
+                if (gp[m] != "p0")
+                {
+                    for (int i = 0; i <= nos.Count - 1; i++)
+                    {
+                        if (gp[m] == nos[i])
+                        {
+                            pe.Add(gp[m]);
+                            exits.Add(gr[m]);
+                            nos.Remove(nos[i]);
+                        }
+                    }
+                }
+                if (nos.Count == 1) { break; }
+            }
+            int idd;
+            List<int> iD = new List<int>();
+            List<int> wt = new List<int>();
+            for (int i = 0; i < exits.Count; i++)
+            {
+                Console.Write(pe[i] + "--");///////////////////////////////
+                Console.WriteLine(exits[i]);/////////////////////////////
+
+                pe[i] = pe[i].Substring(1, 1);
+                idd = Convert.ToInt32(pe[i]);
+                iD.Add(idd);
+            }
+
+            Console.WriteLine(plist.Count + " = " + n + " = " + iD.Count);
+            Console.WriteLine("Tamam kda ?");
+
+            for (int i = 0; i < plist.Count; i++)
+            {
+                for (int j = 0; j < iD.Count; j++)
+                {
+                    if (plist[i].Pid == iD[j])
+                    {
+                        Console.WriteLine(plist[i].arrival);
+                        Console.WriteLine(nburst[i]);
+                        wt.Add(exits[j] - plist[i].arrival - nburst[i]);
+                        break;
+                    }
+                }
+            }
+            int wtime = 0;
+            int av_wt;
+            for (int i = 0; i < wt.Count; i++)
+            {
+                wtime += wt[i];
+            }
+            av_wt = (wtime) / n;
+            Console.WriteLine(av_wt);
+            return av_wt;
+        }        //__________________________________________________________________________________________________________
+        static int fcfs(List<schedular.process> plist, int n)
+        {
+            sorting(plist);
+            int[] se_array = new int[n + 1];//------
+            int[] pid_array = new int[n];
+            //here
+            List<int> nburst = new List<int>();
+            for (int i = 0; i < plist.Count; i++)
+            {
+                nburst.Add(plist[i].burst);
+            }
+            g_process.Clear();
+            g_result.Clear();
+            //to here
+
+            for (int i = 0; i < n; i++)
+            {
+                pid_array[i] = plist[i].Pid;
+            }
+            int[] arrival_array = new int[n];
+
+            for (int i = 0; i < n; i++)
+            {
+                arrival_array[i] = plist[i].arrival;
+            }
+            int[] burst_ary = new int[n];
+
+            for (int i = 0; i < n; i++)
+            {
+                burst_ary[i] = plist[i].burst;
+            }
+            int temp, temp1;
+            int temp2;
+
+            for (int i = 0; i < arrival_array.Length; i++)
+            {
+                for (int j = 0; j < arrival_array.Length; j++)
+                {
+                    if (arrival_array[i] < arrival_array[j])
+                    {
+                        temp = arrival_array[i];
+                        temp2 = pid_array[i];
+                        temp1 = burst_ary[i];
+                        arrival_array[i] = arrival_array[j];
+                        pid_array[i] = pid_array[j];
+                        burst_ary[i] = burst_ary[j];
+                        arrival_array[j] = temp;
+                        pid_array[j] = temp2;
+                        burst_ary[j] = temp1;
+
+                    }
+
+                }
+
+            }
+
+            for (int i = 0; i < n; i++)
+            {
+                Console.Write("p" + pid_array[i] + " ");
+                g_process.Add("p" + pid_array[i]);
+            }
+            //------
+            se_array[0] = arrival_array[0];
+            for (int i = 1; i <= n; i++)
+            {
+                se_array[i] = se_array[i - 1] + burst_ary[i - 1];
+            }
+            Console.WriteLine();
+            for (int i = 0; i < n + 1; i++)
+            {
+                Console.Write(se_array[i] + " ");
+                g_result.Add(se_array[i]);
+            }
+            //------------
+            Console.WriteLine();
+            for (int m = 0; m < g_process.Count; m++) Console.Write(g_process[m] + " ");
+            Console.WriteLine();
+            for (int m = 0; m < g_result.Count; m++) Console.Write(g_result[m] + " ");
+
+            //TO GET AVERAGE WAITING TIME
+            List<string> gp = new List<string>();
+            List<int> gr = new List<int>();
+            Console.WriteLine();
+            for (int m = g_process.Count - 1; m >= 0; m--)
+            {
+                gp.Add(g_process[m]);
+            }
+
+            Console.WriteLine();
+            for (int m = g_result.Count - 1; m >= 0; m--)
+            {
+                gr.Add(g_result[m]);
+            }
+            /*
+            Console.WriteLine();
+            for (int m = 0; m < gp.Count; m++) Console.Write(gp[m] + " ");
+            Console.WriteLine();
+            for (int m = 0; m < gr.Count; m++) Console.Write(gr[m] + " ");
+            */
+            List<string> nos = new List<string>();
+            List<string> pe = new List<string>(); // list of processes arranged for the exit time
+            List<int> exits = new List<int>(); // list of exit time
+
+            for (int i = 1; i <= n; i++)
+            {
+                nos.Add("p" + i);
+            }
+
+            nos.Add("ss");
+            gp.Add("pp");
+            for (int m = 0; m < gp.Count - 1; m++)
+            {
+                if (gp[m] != "p0")
+                {
+                    for (int i = 0; i <= nos.Count - 1; i++)
+                    {
+                        if (gp[m] == nos[i])
+                        {
+                            pe.Add(gp[m]);
+                            exits.Add(gr[m]);
+                            nos.Remove(nos[i]);
+                        }
+                    }
+                }
+                if (nos.Count == 1) { break; }
+            }
+            int idd;
+            List<int> iD = new List<int>();
+            List<int> wt = new List<int>();
+            for (int i = 0; i < exits.Count; i++)
+            {
+                Console.Write(pe[i] + "--");///////////////////////////////
+                Console.WriteLine(exits[i]);/////////////////////////////
+
+                pe[i] = pe[i].Substring(1, 1);
+                idd = Convert.ToInt32(pe[i]);
+                iD.Add(idd);
+            }
+
+            Console.WriteLine(plist.Count + " = " + n + " = " + iD.Count);
+            Console.WriteLine("Tamam kda ?");
+
+            for (int i = 0; i < plist.Count; i++)
+            {
+                for (int j = 0; j < iD.Count; j++)
+                {
+                    if (plist[i].Pid == iD[j])
+                    {
+                        Console.WriteLine(plist[i].arrival);
+                        Console.WriteLine(nburst[i]);
+                        wt.Add(exits[j] - plist[i].arrival - nburst[i]);
+                        break;
+                    }
+                }
+            }
+            int wtime = 0;
+            int av_wt;
+            for (int i = 0; i < wt.Count; i++)
+            {
+                wtime += wt[i];
+            }
+            av_wt = (wtime) / n;
+            Console.WriteLine(av_wt);
+            Console.ReadLine();
+            return av_wt;
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
